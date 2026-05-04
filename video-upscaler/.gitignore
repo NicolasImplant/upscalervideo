@@ -1,47 +1,58 @@
-# Environment
-.env
-*.env.local
-
-# Python
+# ── Python ───────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-*.egg
+*.pyo
 *.egg-info/
+*.egg
 dist/
 build/
-.eggs/
-.venv/
+
+# ── Entorno virtual ──────────────────────────────────────────────────────
 venv/
+.venv/
 env/
+.env/
 
-# Logs
-logs/
-*.log
+# ── Variables de entorno ─────────────────────────────────────────────────
+.env
+# .env.example se trackea intencionalmente
 
-# Docker
-.docker/
+# ── Scripts de utilería local (Windows) ──────────────────────────────────
+scripts/
+*.bat
 
-# IDE
+# ── BasicSR — solo el wheel va al repo, no el clon completo ─────────────
+BasicSR/
+
+# ── wheels — solo basicsr, el resto pesan demasiado ─────────────────────
+wheels/*.whl
+!wheels/basicsr-1.4.2-py3-none-any.whl
+
+# ── Modelos de IA — demasiado grandes para git ───────────────────────────
+*.pth
+*.pt
+*.onnx
+models/
+
+# ── Temporales de procesamiento ──────────────────────────────────────────
+/tmp/
+/data/output/
+/data/input/
+
+# ── Docker ───────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── IDE ──────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
-*.swp
-*.swo
+*.suo
+*.user
 
-# OS
+# ── OS ───────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Temp / output
-tmp/
-temp/
-output/
-*.tmp
-
-# Postman - solo exportar manualmente
-postman/
-!postman/*.json
-
-# Batch scripts con credenciales
-*.secret.bat
+# ── Logs ─────────────────────────────────────────────────────────────────
+*.log
+logs/

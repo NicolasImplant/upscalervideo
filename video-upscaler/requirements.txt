@@ -1,0 +1,91 @@
+# =============================================================================
+# requirements.txt — unificado, aplanado y sin duplicados
+#
+# Merge de:
+#   - dependencias del proyecto (pydantic, structlog, google-cloud, etc.)
+#   - dependencias de basicsr (addict, lmdb, scikit-image, yapf, etc.)
+#   - dependencias transitivas de realesrgan, gfpgan, facexlib
+#
+# CONFLICTOS RESUELTOS:
+#   - opencv-python vs opencv-python-headless:
+#       servidor/Docker  → opencv-python-headless (sin GUI, más liviano)
+#       dev local        → cambiar a opencv-python si necesitas imshow()
+#       NUNCA instalar ambos — se pisan mutuamente
+#
+#   - tb-nightly (basicsr lo declara para visualizar entrenamientos):
+#       reemplazado por tensorboard estable; comentar si no lo necesitas
+#
+# ORDEN DE INSTALACIÓN (ver install.bat / install.sh):
+#   1. pip install --upgrade pip setuptools wheel
+#   2. pip install torch torchvision  (con --index-url según entorno)
+#   3. pip install --no-build-isolation -e ./BasicSR
+#   4. pip install -r requirements.txt
+#   5. pip install gfpgan realesrgan --no-deps
+# =============================================================================
+ 
+# ── Build tools ───────────────────────────────────────────────────────────────
+setuptools>=68.0
+wheel>=0.41
+ 
+# ── App core ──────────────────────────────────────────────────────────────────
+pydantic>=2.7,<3.0
+pydantic-settings>=2.3,<3.0
+structlog>=24.1,<26.0
+ 
+# ── Google Cloud ──────────────────────────────────────────────────────────────
+google-cloud-storage>=2.16,<4.0
+google-auth>=2.26,<3.0
+google-api-core>=2.27,<3.0
+google-cloud-core>=2.4,<3.0
+google-resumable-media>=2.7,<3.0
+google-crc32c>=1.1,<2.0
+googleapis-common-protos>=1.63,<2.0
+proto-plus>=1.22,<2.0
+protobuf>=4.25,<8.0
+ 
+# ── PyTorch ───────────────────────────────────────────────────────────────────
+# Instalado por el script antes que este archivo para poder elegir
+# CPU (dev local) o CUDA (Docker/producción) con el --index-url correcto.
+# Se declaran aquí solo para que pip los reconozca como ya satisfechos.
+torch>=2.2.0
+torchvision>=0.17.0
+ 
+# ── Computer vision ───────────────────────────────────────────────────────────
+# ELIGE UNO — nunca ambos al mismo tiempo:
+opencv-python-headless>=4.9   # producción / Docker / CI  ← activo por defecto
+# opencv-python>=4.9          # dev local si usas imshow() o ventanas Qt
+ 
+Pillow>=9.0
+ 
+# ── Numérico y científico ─────────────────────────────────────────────────────
+numpy>=1.26,<3.0
+scipy>=1.9
+scikit-image>=0.21            # requerido por basicsr
+ 
+# ── Utilidades propias de basicsr ─────────────────────────────────────────────
+addict>=2.4                   # acceso a dicts por atributo (config de basicsr)
+future>=0.18                  # compatibilidad Py2/Py3 que basicsr aún usa
+lmdb>=1.4                     # almacenamiento de datasets en basicsr
+pyyaml>=6.0                   # lectura de configs .yml de basicsr
+yapf>=0.32                    # formateador usado internamente por basicsr
+ 
+# ── Logging y métricas ────────────────────────────────────────────────────────
+tensorboard>=2.14             # reemplaza tb-nightly de basicsr (más estable)
+                              # comentar si no vas a visualizar entrenamientos
+ 
+# ── Utilidades HTTP y sistema ─────────────────────────────────────────────────
+tqdm>=4.64
+requests>=2.28,<3.0
+urllib3>=1.26,<3.0
+certifi>=2023.5
+idna>=3.4
+charset-normalizer>=3.0,<4.0
+ 
+# ── Stack de face/upscaling (facexlib es dep de gfpgan) ───────────────────────
+facexlib>=0.3.0
+filterpy>=1.4                 # filtros de Kalman que usa facexlib
+ 
+# ── Crypto (dep de google-auth) ───────────────────────────────────────────────
+cryptography>=38.0
+pyasn1-modules>=0.2
+ 
