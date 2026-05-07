@@ -17,10 +17,6 @@ env/
 .env
 # .env.example se trackea intencionalmente
 
-# ── Scripts de utilería local (Windows) ──────────────────────────────────
-scripts/
-*.bat
-
 # ── BasicSR — solo el wheel va al repo, no el clon completo ─────────────
 BasicSR/
 
