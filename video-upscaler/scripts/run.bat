@@ -15,25 +15,50 @@ for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%PROJECT_ROOT%\.env") do (
 
 where gcloud >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] gcloud no encontrado.
+    echo [ERROR] gcloud CLI no encontrado. Instala Google Cloud SDK.
+    pause & exit /b 1
+)
+where gsutil >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] gsutil no encontrado. Viene incluido con Google Cloud SDK.
     pause & exit /b 1
 )
 
 gcloud config set project %GCP_PROJECT_ID% --quiet
-echo   [OK] Proyecto: %GCP_PROJECT_ID%
+echo   [OK] Proyecto : %GCP_PROJECT_ID%
+echo   [OK] Job      : %CLOUD_RUN_JOB_NAME%
 echo.
 echo ============================================================
 echo  video-upscaler -- procesar video
 echo ============================================================
 echo.
-if "%~1"=="" (
-    echo [ERROR] Indica el archivo de video.
-    echo Uso: scripts\run.bat mi_video.mp4
+
+REM Resolver el path del video:
+REM   1. Argumento de linea de comandos  (prioridad alta)
+REM   2. VIDEO_LOCAL_PATH del .env       (default configurado)
+if not "%~1"=="" (
+    set "VIDEO_PATH=%~1"
+) else if not "%VIDEO_LOCAL_PATH%"=="" (
+    set "VIDEO_PATH=%VIDEO_LOCAL_PATH%"
+) else (
+    echo [ERROR] No se especifico el video.
+    echo.
+    echo  Opciones:
+    echo    1. Pasar el path como argumento:
+    echo         scripts\run.bat "C:\ruta\a\mi_video.mp4"
+    echo.
+    echo    2. Configurar VIDEO_LOCAL_PATH en .env y ejecutar sin argumentos:
+    echo         VIDEO_LOCAL_PATH=C:\ruta\a\mi_video.mp4
+    echo         scripts\run.bat
     pause & exit /b 1
 )
-set "VIDEO_PATH=%~1"
-set "VIDEO_NAME=%~nx1"
-set "VIDEO_STEM=%~n1"
+
+REM Extraer nombre y stem del path resuelto
+for %%F in ("%VIDEO_PATH%") do (
+    set "VIDEO_NAME=%%~nxF"
+    set "VIDEO_STEM=%%~nF"
+)
+
 if not exist "%VIDEO_PATH%" (
     echo [ERROR] Archivo no encontrado: %VIDEO_PATH%
     pause & exit /b 1
