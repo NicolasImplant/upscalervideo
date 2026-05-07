@@ -31,11 +31,10 @@ class VideoPipeline:
 
         try:
             self._prepare_workspace()
+            pipeline = self._factory.build_pipeline()
 
             with timed_step(metrics, "download"):
                 self._storage.download(s.gcs_input_blob, s.input_video_path)
-
-            pipeline = self._factory.build_pipeline()
 
             for processor in pipeline:
                 logger.info("processor_running", name=processor.name)

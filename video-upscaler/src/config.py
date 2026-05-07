@@ -37,7 +37,6 @@ class Settings(BaseSettings):
     video_output_codec: str = "libx264"
     video_output_audio_bitrate: str = "192k"
     video_output_audio_codec: str = "aac"
-    video_trim_seconds: int = Field(0, ge=0)  # 0 = sin recorte
 
     # Real-ESRGAN
     esrgan_model_name: str = "RealESRGAN_x2plus"
@@ -72,7 +71,6 @@ class Settings(BaseSettings):
     audio_raw_filename: str = "audio_raw.aac"
     audio_clean_filename: str = "audio_clean.aac"
     input_filename: str = "input.mp4"
-    output_filename: str = "output_upscaled.mp4"
 
     # Storage backend
     storage_backend: str = Field("gcs", pattern="^(gcs|local)$")
@@ -110,7 +108,7 @@ class Settings(BaseSettings):
 
     @property
     def output_video_path(self) -> Path:
-        return self.job_tmp_dir / self.output_filename
+        return self.job_tmp_dir / f"{Path(self.video_name).stem}_upscaled.mp4"
 
     @property
     def gcs_input_blob(self) -> str:
@@ -118,7 +116,7 @@ class Settings(BaseSettings):
 
     @property
     def gcs_output_blob(self) -> str:
-        return f"{self.gcs_output_prefix}{self.output_filename}"
+        return f"{self.gcs_output_prefix}{Path(self.video_name).stem}_upscaled.mp4"
 
     @property
     def is_development(self) -> bool:

@@ -70,8 +70,7 @@ pyyaml>=6.0                   # lectura de configs .yml de basicsr
 yapf>=0.32                    # formateador usado internamente por basicsr
  
 # ── Logging y métricas ────────────────────────────────────────────────────────
-tensorboard>=2.14             # reemplaza tb-nightly de basicsr (más estable)
-                              # comentar si no vas a visualizar entrenamientos
+# tensorboard>=2.14           # solo necesario para visualizar entrenamientos; no requerido en producción
  
 # ── Utilidades HTTP y sistema ─────────────────────────────────────────────────
 tqdm>=4.64

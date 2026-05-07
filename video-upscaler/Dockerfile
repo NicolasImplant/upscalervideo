@@ -15,11 +15,11 @@ RUN ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
 WORKDIR /app
 
 COPY requirements.txt .
-COPY BasicSR/ ./BasicSR/
+COPY wheels/basicsr-1.4.2-py3-none-any.whl ./wheels/
 
 RUN pip install --upgrade pip && \
     pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121 && \
-    pip install ./BasicSR && \
+    pip install ./wheels/basicsr-1.4.2-py3-none-any.whl && \
     pip install -r requirements.txt
 
 # Descargar modelo ESRGAN

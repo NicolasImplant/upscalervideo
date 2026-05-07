@@ -1,0 +1,42 @@
+# Excluir todo lo que no necesita el contenedor Docker
+
+# ── Entorno local ────────────────────────────────────────────────────────
+venv/
+.venv/
+.env
+
+# ── BasicSR completo — solo el wheel es necesario ────────────────────────
+BasicSR/
+
+# ── Wheels de dependencias — pip los baja de PyPI en el build ────────────
+wheels/*.whl
+!wheels/basicsr-1.4.2-py3-none-any.whl
+
+# ── Modelos — se descargan en el Dockerfile ──────────────────────────────
+models/
+*.pth
+
+# ── Datos y temporales ───────────────────────────────────────────────────
+data/
+tmp/
+
+# ── IDE y OS ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── Git ──────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Scripts de dev local — no van al contenedor ──────────────────────────
+*.bat
+*.sh
+install.bat
+cleanup_basicsr.bat
+setup_project.bat
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+*.log
+logs/

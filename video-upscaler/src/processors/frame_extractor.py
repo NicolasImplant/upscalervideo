@@ -64,7 +64,22 @@ class FrameExtractorProcessor(ProcessorPort):
         ]
         self._run(cmd, "frame_extraction")
 
+    def _has_audio_stream(self) -> bool:
+        s = self._settings
+        cmd = [
+            s.ffprobe_binary, "-v", "error",
+            "-select_streams", "a:0",
+            "-show_entries", "stream=codec_type",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(s.input_video_path),
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.returncode == 0 and bool(result.stdout.strip())
+
     def _extract_audio(self) -> None:
+        if not self._has_audio_stream():
+            logger.info("audio_stream_not_found_skip")
+            return
         s = self._settings
         cmd = [
             s.ffmpeg_binary,

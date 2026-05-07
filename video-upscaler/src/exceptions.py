@@ -52,18 +52,3 @@ class AudioEnhancementError(ProcessorError):
 
 class VideoAssemblyError(ProcessorError):
     """Fallo al reensamblar el video final."""
-
-
-class SubprocessError(VideoUpscalerError):
-    """Proceso externo retornó un error."""
-
-    def __init__(
-        self,
-        message: str,
-        returncode: int,
-        stderr: str,
-        context: dict | None = None,
-    ) -> None:
-        super().__init__(message, context)
-        self.returncode = returncode
-        self.stderr = stderr

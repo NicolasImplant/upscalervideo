@@ -4,6 +4,7 @@ import torch
 from pathlib import Path
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
+from src.config import Settings
 from src.processors.port import ProcessorPort, ProcessorResult
 from src.exceptions import UpscalingError
 from src.metrics import JobMetrics, timed_step
@@ -13,18 +14,21 @@ logger = get_logger(__name__)
 
 
 class VideoUpscalerProcessor(ProcessorPort):
+    def __init__(self, settings: Settings) -> None:
+        super().__init__(settings)
+        if not settings.esrgan_model_path.exists():
+            raise UpscalingError(
+                f"Modelo no encontrado: {settings.esrgan_model_path}",
+                processor_name="video_upscaler",
+                context={"model_path": str(settings.esrgan_model_path)},
+            )
+
     @property
     def name(self) -> str:
         return "video_upscaler"
 
     def _build_upsampler(self) -> RealESRGANer:
         s = self._settings
-        if not s.esrgan_model_path.exists():
-            raise UpscalingError(
-                f"Modelo no encontrado: {s.esrgan_model_path}",
-                processor_name=self.name,
-                context={"model_path": str(s.esrgan_model_path)},
-            )
         model = RRDBNet(
             num_in_ch=3, num_out_ch=3,
             num_feat=s.esrgan_num_feat,
