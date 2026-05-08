@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 pushd "%~dp0.."
@@ -24,7 +24,7 @@ if errorlevel 1 (
     pause & exit /b 1
 )
 
-gcloud config set project %GCP_PROJECT_ID% --quiet
+call gcloud config set project %GCP_PROJECT_ID% --quiet
 echo   [OK] Proyecto : %GCP_PROJECT_ID%
 echo   [OK] Job      : %CLOUD_RUN_JOB_NAME%
 echo.
@@ -69,12 +69,12 @@ echo  Nombre : %VIDEO_NAME%
 echo  Destino: %GCS_DEST%
 echo.
 echo [1/2] Subiendo video...
-gsutil -o "GSUtil:parallel_composite_upload_threshold=50M" cp "%VIDEO_PATH%" "%GCS_DEST%"
+call gsutil -o "GSUtil:parallel_composite_upload_threshold=50M" cp "%VIDEO_PATH%" "%GCS_DEST%"
 if errorlevel 1 ( echo [ERROR] Fallo el upload. & pause & exit /b 1 )
 echo   [OK] Video subido.
 echo.
 echo [2/2] Ejecutando Cloud Run Job...
-gcloud beta run jobs execute %CLOUD_RUN_JOB_NAME% --region=%GCP_REGION% --project=%GCP_PROJECT_ID% --update-env-vars="VIDEO_NAME=%VIDEO_NAME%" --wait
+call gcloud beta run jobs execute %CLOUD_RUN_JOB_NAME% --region=%GCP_REGION% --project=%GCP_PROJECT_ID% --update-env-vars="VIDEO_NAME=%VIDEO_NAME%" --wait
 if errorlevel 1 ( echo [ERROR] El job fallo. & pause & exit /b 1 )
 echo.
 echo ============================================================

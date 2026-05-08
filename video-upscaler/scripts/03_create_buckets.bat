@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 pushd "%~dp0.."
@@ -19,7 +19,7 @@ if errorlevel 1 (
     pause & exit /b 1
 )
 
-gcloud config set project %GCP_PROJECT_ID% --quiet
+call gcloud config set project %GCP_PROJECT_ID% --quiet
 echo   [OK] Proyecto: %GCP_PROJECT_ID%
 echo.
 echo ============================================================
@@ -30,16 +30,16 @@ echo  Input  : gs://%GCS_BUCKET_INPUT%
 echo  Output : gs://%GCS_BUCKET_OUTPUT%
 echo  Region : %GCP_REGION%
 echo.
-gcloud storage buckets describe gs://%GCS_BUCKET_INPUT% >nul 2>&1
+call gcloud storage buckets describe gs://%GCS_BUCKET_INPUT% >nul 2>&1
 if errorlevel 1 (
-    gcloud storage buckets create gs://%GCS_BUCKET_INPUT% --location=%GCP_REGION% --uniform-bucket-level-access --project=%GCP_PROJECT_ID%
+    call gcloud storage buckets create gs://%GCS_BUCKET_INPUT% --location=%GCP_REGION% --uniform-bucket-level-access --project=%GCP_PROJECT_ID%
     if errorlevel 1 ( echo   [ERROR] No se pudo crear bucket input. & pause & exit /b 1 )
     echo   [OK] gs://%GCS_BUCKET_INPUT% creado.
 ) else ( echo   [OK] gs://%GCS_BUCKET_INPUT% ya existe. )
 
-gcloud storage buckets describe gs://%GCS_BUCKET_OUTPUT% >nul 2>&1
+call gcloud storage buckets describe gs://%GCS_BUCKET_OUTPUT% >nul 2>&1
 if errorlevel 1 (
-    gcloud storage buckets create gs://%GCS_BUCKET_OUTPUT% --location=%GCP_REGION% --uniform-bucket-level-access --project=%GCP_PROJECT_ID%
+    call gcloud storage buckets create gs://%GCS_BUCKET_OUTPUT% --location=%GCP_REGION% --uniform-bucket-level-access --project=%GCP_PROJECT_ID%
     if errorlevel 1 ( echo   [ERROR] No se pudo crear bucket output. & pause & exit /b 1 )
     echo   [OK] gs://%GCS_BUCKET_OUTPUT% creado.
 ) else ( echo   [OK] gs://%GCS_BUCKET_OUTPUT% ya existe. )

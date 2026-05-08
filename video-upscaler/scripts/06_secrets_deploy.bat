@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 REM =============================================================================
@@ -63,7 +63,7 @@ set "IMAGE_TAG=%GCP_REGION%-docker.pkg.dev/%GCP_PROJECT_ID%/%GCP_ARTIFACT_REPO%/
 
 echo.
 echo ===========================================================================
-echo  video-upscaler — Deploy completo con Secret Manager
+echo  video-upscaler ? Deploy completo con Secret Manager
 echo ===========================================================================
 echo  Proyecto   : %GCP_PROJECT_ID%
 echo  Region     : %GCP_REGION%
@@ -73,7 +73,7 @@ echo  SA         : %SA_EMAIL%
 echo ===========================================================================
 echo.
 
-gcloud config set project %GCP_PROJECT_ID% --quiet
+call gcloud config set project %GCP_PROJECT_ID% --quiet
 if errorlevel 1 ( echo [ERROR] No se pudo configurar el proyecto. & pause & exit /b 1 )
 
 REM ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ for %%A in (
     secretmanager.googleapis.com
     iam.googleapis.com
 ) do (
-    gcloud services enable %%A --project=%GCP_PROJECT_ID% --quiet
+    call gcloud services enable %%A --project=%GCP_PROJECT_ID% --quiet
     if errorlevel 1 ( echo   [ERROR] No se pudo habilitar %%A & pause & exit /b 1 )
     echo   [OK] %%A
 )
@@ -100,9 +100,9 @@ REM [2/7] Crear Service Account
 REM ---------------------------------------------------------------------------
 echo [2/7] Configurando Service Account...
 echo.
-gcloud iam service-accounts describe %SA_EMAIL% --project=%GCP_PROJECT_ID% >nul 2>&1
+call gcloud iam service-accounts describe %SA_EMAIL% --project=%GCP_PROJECT_ID% >nul 2>&1
 if errorlevel 1 (
-    gcloud iam service-accounts create %SA_NAME% ^
+    call gcloud iam service-accounts create %SA_NAME% ^
         --display-name="Video Upscaler Job SA" ^
         --project=%GCP_PROJECT_ID% --quiet
     if errorlevel 1 ( echo   [ERROR] No se pudo crear el SA. & pause & exit /b 1 )
@@ -113,11 +113,11 @@ if errorlevel 1 (
 
 REM Roles de storage (R en input, RW en output)
 for %%R in (roles/storage.objectViewer) do (
-    gcloud storage buckets add-iam-policy-binding gs://%GCS_BUCKET_INPUT% ^
+    call gcloud storage buckets add-iam-policy-binding gs://%GCS_BUCKET_INPUT% ^
         --member="serviceAccount:%SA_EMAIL%" --role=%%R --quiet >nul 2>&1
 )
 for %%R in (roles/storage.objectCreator roles/storage.objectViewer) do (
-    gcloud storage buckets add-iam-policy-binding gs://%GCS_BUCKET_OUTPUT% ^
+    call gcloud storage buckets add-iam-policy-binding gs://%GCS_BUCKET_OUTPUT% ^
         --member="serviceAccount:%SA_EMAIL%" --role=%%R --quiet >nul 2>&1
 )
 echo   [OK] Roles de storage asignados
@@ -129,9 +129,9 @@ REM ---------------------------------------------------------------------------
 echo [3/7] Configurando buckets GCS...
 echo.
 for %%B in (%GCS_BUCKET_INPUT% %GCS_BUCKET_OUTPUT%) do (
-    gcloud storage buckets describe gs://%%B --project=%GCP_PROJECT_ID% >nul 2>&1
+    call gcloud storage buckets describe gs://%%B --project=%GCP_PROJECT_ID% >nul 2>&1
     if errorlevel 1 (
-        gcloud storage buckets create gs://%%B ^
+        call gcloud storage buckets create gs://%%B ^
             --project=%GCP_PROJECT_ID% ^
             --location=%GCP_REGION% ^
             --uniform-bucket-level-access ^
@@ -159,8 +159,11 @@ echo [4/7] Creando o actualizando secretos en Secret Manager...
 echo.
 
 call :upsert_secret "upscaler-gcp-project-id"    "%GCP_PROJECT_ID%"
+if errorlevel 1 ( echo   [ERROR] Fallo al crear secreto upscaler-gcp-project-id. & pause & exit /b 1 )
 call :upsert_secret "upscaler-gcs-bucket-input"  "%GCS_BUCKET_INPUT%"
+if errorlevel 1 ( echo   [ERROR] Fallo al crear secreto upscaler-gcs-bucket-input. & pause & exit /b 1 )
 call :upsert_secret "upscaler-gcs-bucket-output" "%GCS_BUCKET_OUTPUT%"
+if errorlevel 1 ( echo   [ERROR] Fallo al crear secreto upscaler-gcs-bucket-output. & pause & exit /b 1 )
 
 echo.
 
@@ -170,7 +173,7 @@ REM ---------------------------------------------------------------------------
 echo [5/7] Otorgando roles/secretmanager.secretAccessor al SA...
 echo.
 for %%S in (upscaler-gcp-project-id upscaler-gcs-bucket-input upscaler-gcs-bucket-output) do (
-    gcloud secrets add-iam-policy-binding %%S ^
+    call gcloud secrets add-iam-policy-binding %%S ^
         --member="serviceAccount:%SA_EMAIL%" ^
         --role="roles/secretmanager.secretAccessor" ^
         --project=%GCP_PROJECT_ID% ^
@@ -185,10 +188,10 @@ REM ---------------------------------------------------------------------------
 echo [6/7] Build y push de imagen Docker (Cloud Build)...
 echo.
 
-gcloud artifacts repositories describe %GCP_ARTIFACT_REPO% ^
+call gcloud artifacts repositories describe %GCP_ARTIFACT_REPO% ^
     --location=%GCP_REGION% --project=%GCP_PROJECT_ID% >nul 2>&1
 if errorlevel 1 (
-    gcloud artifacts repositories create %GCP_ARTIFACT_REPO% ^
+    call gcloud artifacts repositories create %GCP_ARTIFACT_REPO% ^
         --repository-format=docker ^
         --location=%GCP_REGION% ^
         --project=%GCP_PROJECT_ID% --quiet
@@ -198,13 +201,13 @@ if errorlevel 1 (
     echo   [OK] Artifact Registry ya existe.
 )
 
-gcloud auth configure-docker %GCP_REGION%-docker.pkg.dev --quiet
+call gcloud auth configure-docker %GCP_REGION%-docker.pkg.dev --quiet
 if errorlevel 1 ( echo   [ERROR] Docker auth fallo. & pause & exit /b 1 )
 
 echo.
 echo   Iniciando Cloud Build (10-20 min primera vez)...
 echo.
-gcloud builds submit ^
+call gcloud builds submit ^
     --tag="%IMAGE_TAG%" ^
     --machine-type=E2_HIGHCPU_8 ^
     --timeout=40m ^
@@ -224,18 +227,19 @@ REM  --set-env-vars : resto de la configuracion (no sensible)
 REM ---------------------------------------------------------------------------
 echo [7/7] Desplegando Cloud Run Job...
 echo.
-gcloud beta run jobs describe %CLOUD_RUN_JOB_NAME% ^
+call gcloud beta run jobs describe %CLOUD_RUN_JOB_NAME% ^
     --region=%GCP_REGION% --project=%GCP_PROJECT_ID% >nul 2>&1
 if errorlevel 1 ( set "JOB_CMD=create" ) else ( set "JOB_CMD=update" )
 echo   Ejecutando: gcloud run jobs !JOB_CMD!...
 echo.
 
-gcloud beta run jobs !JOB_CMD! %CLOUD_RUN_JOB_NAME% ^
+call gcloud beta run jobs !JOB_CMD! %CLOUD_RUN_JOB_NAME% ^
     --image="%IMAGE_TAG%" ^
     --region=%GCP_REGION% ^
     --project=%GCP_PROJECT_ID% ^
     --service-account=%SA_EMAIL% ^
     --gpu=1 --gpu-type=nvidia-l4 ^
+    --no-gpu-zonal-redundancy ^
     --cpu=4 --memory=16Gi ^
     --task-timeout=3600 ^
     --max-retries=1 ^
@@ -284,9 +288,9 @@ powershell -NoProfile -Command ^
     "[System.IO.File]::WriteAllText('%_TMP_FILE%', '%_SECRET_VALUE%', [System.Text.Encoding]::UTF8)" ^
     >nul 2>&1
 
-gcloud secrets describe %_SECRET_NAME% --project=%GCP_PROJECT_ID% >nul 2>&1
+call gcloud secrets describe %_SECRET_NAME% --project=%GCP_PROJECT_ID% >nul 2>&1
 if errorlevel 1 (
-    gcloud secrets create %_SECRET_NAME% ^
+    call gcloud secrets create %_SECRET_NAME% ^
         --data-file="%_TMP_FILE%" ^
         --replication-policy=automatic ^
         --project=%GCP_PROJECT_ID% ^
@@ -298,7 +302,7 @@ if errorlevel 1 (
     )
     echo   [OK] Secreto creado: %_SECRET_NAME%
 ) else (
-    gcloud secrets versions add %_SECRET_NAME% ^
+    call gcloud secrets versions add %_SECRET_NAME% ^
         --data-file="%_TMP_FILE%" ^
         --project=%GCP_PROJECT_ID% ^
         --quiet

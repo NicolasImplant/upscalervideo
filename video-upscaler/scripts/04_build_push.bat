@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 pushd "%~dp0.."
@@ -19,7 +19,7 @@ if errorlevel 1 (
     pause & exit /b 1
 )
 
-gcloud config set project %GCP_PROJECT_ID% --quiet
+call gcloud config set project %GCP_PROJECT_ID% --quiet
 echo   [OK] Proyecto: %GCP_PROJECT_ID%
 echo.
 echo ============================================================
@@ -29,20 +29,20 @@ echo.
 set "IMAGE_TAG=%GCP_REGION%-docker.pkg.dev/%GCP_PROJECT_ID%/%GCP_ARTIFACT_REPO%/%IMAGE_NAME%:latest"
 echo  Imagen: %IMAGE_TAG%
 echo.
-gcloud artifacts repositories describe %GCP_ARTIFACT_REPO% --location=%GCP_REGION% --project=%GCP_PROJECT_ID% >nul 2>&1
+call gcloud artifacts repositories describe %GCP_ARTIFACT_REPO% --location=%GCP_REGION% --project=%GCP_PROJECT_ID% >nul 2>&1
 if errorlevel 1 (
-    gcloud artifacts repositories create %GCP_ARTIFACT_REPO% --repository-format=docker --location=%GCP_REGION% --project=%GCP_PROJECT_ID% --quiet
+    call gcloud artifacts repositories create %GCP_ARTIFACT_REPO% --repository-format=docker --location=%GCP_REGION% --project=%GCP_PROJECT_ID% --quiet
     if errorlevel 1 ( echo   [ERROR] No se pudo crear el repositorio. & pause & exit /b 1 )
     echo   [OK] Repositorio creado.
 ) else ( echo   [OK] Repositorio ya existe. )
 
-gcloud auth configure-docker %GCP_REGION%-docker.pkg.dev --quiet
+call gcloud auth configure-docker %GCP_REGION%-docker.pkg.dev --quiet
 if errorlevel 1 ( echo   [ERROR] Docker auth fallo. & pause & exit /b 1 )
 echo   [OK] Docker autenticado.
 echo.
 echo   Iniciando Cloud Build (10-20 min primera vez)...
 echo.
-gcloud builds submit --tag="%IMAGE_TAG%" --machine-type=E2_HIGHCPU_8 --timeout=40m --project=%GCP_PROJECT_ID% "%PROJECT_ROOT%"
+call gcloud builds submit --tag="%IMAGE_TAG%" --machine-type=E2_HIGHCPU_8 --timeout=40m --project=%GCP_PROJECT_ID% "%PROJECT_ROOT%"
 if errorlevel 1 ( echo. & echo   [ERROR] Cloud Build fallo. & pause & exit /b 1 )
 echo.
 echo  Imagen publicada: %IMAGE_TAG%
